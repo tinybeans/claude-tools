@@ -22,6 +22,7 @@ Movable Type の PageBute プラグインを使用して、静的ページのペ
 1. **検索テンプレートでは使用不可**
 2. **記事が1件も無い場合は機能しない** - 最低1件の記事を登録すること
 3. **MTIf での数値判別は不可** - ファイル生成時に動作するため
+4. **インデックステンプレートでは `lastn="0"` が必須** - すべての記事を対象にするため
 
 ---
 
@@ -144,9 +145,46 @@ Movable Type の PageBute プラグインを使用して、静的ページのペ
 
 ## 実装パターン
 
-### パターン1: 基本的な記事リスト分割（簡易版）
+### パターン1: インデックステンプレートでの記事一覧分割
 
-5件ごとに記事を分割し、シンプルなナビゲーションを表示。
+インデックステンプレートで全記事を対象にする場合。**`lastn="0"` が必須**。
+
+```html
+<section id="posts">
+  <h2>記事一覧</h2>
+  <ol>
+    <mt:PageContents count="10">
+    <mt:Entries lastn="0">
+      <li>
+        <a href="<$mt:EntryPermalink encode_html="1"$>">
+          <time datetime="<$mt:EntryDate format_name="iso8601"$>">
+            <$mt:EntryDate format="%x"$>
+          </time>
+          <span class="title"><$mt:EntryTitle$></span>
+        </a>
+      </li>
+      <$mt:PageSeparator$>
+    </mt:Entries>
+    </mt:PageContents>
+  </ol>
+</section>
+
+<mt:IfPageBefore>
+  <span><$mt:PageBefore delim="前の10件"$></span>
+</mt:IfPageBefore>
+<$mt:PageLists$>
+<mt:IfPageAfter>
+  <span><$mt:PageAfter delim="次の10件"$></span>
+</mt:IfPageAfter>
+```
+
+> **重要**: インデックステンプレートでは `mt:Entries` に `lastn="0"` を指定しないと、デフォルトの件数制限がかかり、すべての記事が表示されません。
+
+---
+
+### パターン2: アーカイブテンプレートでの記事リスト分割
+
+アーカイブテンプレート（カテゴリ、月別等）での使用例。
 
 ```html
 <section id="posts">
@@ -179,7 +217,7 @@ Movable Type の PageBute プラグインを使用して、静的ページのペ
 
 ---
 
-### パターン2: カスタムナビゲーション（mt:Pagination利用）
+### パターン3: カスタムナビゲーション（mt:Pagination利用）
 
 完全にカスタマイズ可能なページネーション。
 
@@ -253,7 +291,7 @@ Movable Type の PageBute プラグインを使用して、静的ページのペ
 
 ---
 
-### パターン3: 記事本文の分割
+### パターン4: 記事本文の分割
 
 1つの記事を複数ページに分割（長文記事向け）。
 
@@ -302,7 +340,7 @@ Movable Type の PageBute プラグインを使用して、静的ページのペ
 
 ---
 
-### パターン4: 空コンテンツ対応
+### パターン5: 空コンテンツ対応
 
 記事が0件の場合のフォールバック表示。
 
@@ -328,7 +366,7 @@ Movable Type の PageBute プラグインを使用して、静的ページのペ
 
 ---
 
-### パターン5: ヘッダー・フッター付きリスト
+### パターン6: ヘッダー・フッター付きリスト
 
 各ページの最初と最後で異なる表示。
 
@@ -417,15 +455,17 @@ Always:
 - ユーザーの要件に合わせてパターンを選択
 - Movable Type のテンプレート構文に準拠
 - アクセシビリティを考慮したマークアップ
+- インデックステンプレートでは `mt:Entries lastn="0"` を使用
 
 Never:
 - 検索テンプレートで PageBute を使用
 - `mt:PageSeparator` をループ外に配置
 - 記事0件の状態で動作を保証
+- インデックステンプレートで `lastn="0"` を省略
 
 ---
 
 ## 参考リンク
 
-- [PageBute プラグイン公式ドキュメント](https://movabletype.jp/documentation/)
+- [PageBute プラグイン公式ドキュメント](https://www.movabletype.jp/documentation/mt9/designers-guide/manage-templates/pagebute/)
 - [Movable Type テンプレートタグリファレンス](https://movabletype.jp/documentation/appendices/tags/)
